@@ -90,7 +90,66 @@ class Maze():
                     row.append(False)
 
             self.walls.append(row)        
-                
 
-        
+    def neighbors(self, state):
+        row, col = state
 
+        candidates = [
+            ("up", (row-1, col)),
+            ("down", (row+1, col)),
+            ("left", (row, col - 1)),
+            ("rgiht", (row, col+1))
+        ]
+
+        result = []
+
+        for action, (r, c) in candidates:
+            if (
+                0 <= r < self.height
+                and 0 <= c < self.width
+                and not self.walls[r][c]
+            ):
+                result.append((action, (r, c)))
+        return result
+
+    def solve(self):
+
+        self.num_explored = 0
+
+        start = Node(state=self.start, parent=None, action=None)
+
+        frontier = StackFrontier()
+        frontier.add(start)
+
+        #Create a explored list:
+        explored_list = set()
+
+        while True:
+
+            if frontier.empty():
+                raise Exception("No solution")
+
+            node = frontier.remove()
+
+            if node.state == self.goal:
+                print("Found the goal")
+                return
+
+            #if it is not the goal, we add it into the explored_set
+
+            explored_list.add(node.state)
+
+            #checks its neighbors
+            for action, state in self.neighbors(node,state):
+
+                if (
+                    state not in explored_list
+                    and not frontier.contains_state(state)
+                ):
+                    child = Node(
+                        state = state,
+                        parent=node,
+                        action=action
+                    )
+
+                    frontier.add(child)
