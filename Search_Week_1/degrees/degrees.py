@@ -26,6 +26,7 @@ def load_data(directory):
                 "birth": row["birth"],
                 "movies": set()
             }
+
             if row["name"].lower() not in names:
                 names[row["name"].lower()] = {row["id"]}
             else:
@@ -62,13 +63,16 @@ def main():
     load_data(directory)
     print("Data loaded.")
 
+    #find the start person's personal_ID
     source = person_id_for_name(input("Name: "))
     if source is None:
         sys.exit("Person not found.")
+
+    #find the end person's personal_ID
     target = person_id_for_name(input("Name: "))
     if target is None:
         sys.exit("Person not found.")
-
+    
     path = shortest_path(source, target)
 
     if path is None:
@@ -92,7 +96,41 @@ def shortest_path(source, target):
     If no possible path, returns None.
     """
 
-    # TODO
+    #Initial node
+    start = Node(state=source, parent=None, action=None)
+    frontier = QueueFrontier()
+    frontier.add(start)
+    explored = set()
+
+    while True:
+
+        if frontier.empty():
+            return None
+
+        #remove a node from the frontier(it is FIFO):
+        node = frontier.remove()
+
+        #Mark this person as explored:
+        explored.add(node.state)
+
+        #Expand node - get all movie_id and person_id connected to this person
+        for movie_id, person_id in neighbors_for_person(node.state):
+
+            if not frontier.contains_state(person_id) and person_id not in explored:
+
+                child = Node(state=person_id, parent=node, action=movie_id)
+
+                if child.state == target:
+
+                    path = []
+
+                    while child.parent is not None:
+                        path.append((child.action, child.state))
+                        child = child.parent
+                    path.reverse()
+                    return path
+                frontier.add(child)
+
     raise NotImplementedError
 
 
